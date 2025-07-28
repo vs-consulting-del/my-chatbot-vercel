@@ -1,26 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="sr">
 <head>
-  <title>Chatbot</title>
+  <meta charset="UTF-8" />
+  <title>VS Legal Asistent</title>
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="script.js"></script>
 </head>
 <body>
-  <h1>Chatbot</h1>
-  <input id="input" type="text" placeholder="Message..." />
-  <button onclick="send()">Send</button>
-  <div id="chat"></div>
-
-  <script>
-    async function send() {
-      const text = document.getElementById("input").value;
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
-      });
-
-      const data = await res.json();
-      document.getElementById("chat").innerHTML += `<p><b>You:</b> ${text}</p><p><b>Bot:</b> ${data.reply}</p>`;
-    }
-  </script>
+  <main id="chat-container">
+    <h1>VS Legal Asistent</h1>
+    <div id="messages"></div>
+    <div id="input-container">
+      <input id="userInput" type="text" placeholder="Unesite pravno pitanje..." />
+      <button id="sendBtn" title="Pošalji">
+        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z" fill="none" stroke="black"/></svg>
+      </button>
+      <button id="resetBtn" title="Novi slučaj">🗑</button>
+    </div>
+    <div id="typing" class="hidden">Asistent piše...</div>
+  </main>
 </body>
 </html>
