@@ -3,21 +3,109 @@
 <head>
   <meta charset="UTF-8" />
   <title>VS Legal Asistent</title>
-  <link rel="stylesheet" href="style.css" />
-  <script defer src="script.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Source+Serif+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f9f5f0;
+    }
+    .chat-font {
+      font-family: 'Source Serif Pro', serif;
+    }
+    .typing-animation::after {
+      content: '';
+      display: inline-block;
+      width: 1ch;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { background: transparent; }
+      50% { background: black; }
+    }
+  </style>
 </head>
-<body>
-  <main id="chat-container">
-    <h1>VS Legal Asistent</h1>
-    <div id="messages"></div>
-    <div id="input-container">
-      <input id="userInput" type="text" placeholder="Unesite pravno pitanje..." />
-      <button id="sendBtn" title="Pošalji">
-        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z" fill="none" stroke="black"/></svg>
-      </button>
-      <button id="resetBtn" title="Novi slučaj">🗑</button>
-    </div>
-    <div id="typing" class="hidden">Asistent piše...</div>
-  </main>
+<body class="relative">
+
+<!-- Chat Button -->
+<button id="toggleChat" class="fixed bottom-6 right-6 bg-neutral-900 text-white p-3 rounded-full shadow-lg hover:scale-105 transition">
+  💬
+</button>
+
+<!-- Chat Window -->
+<div id="chatWidget" class="hidden fixed bottom-20 right-6 w-96 max-w-full bg-white border border-gray-300 rounded-xl shadow-2xl flex flex-col overflow-hidden">
+  <div class="bg-neutral-800 text-white p-4 font-semibold text-lg">VS Legal Asistent</div>
+  <div id="messages" class="flex-1 overflow-y-auto p-4 space-y-3 text-sm chat-font"></div>
+  <div id="typing" class="text-gray-500 italic px-4 pb-2 hidden">Asistent piše<span class="typing-animation"></span></div>
+  <div class="flex items-center border-t border-gray-200 p-2">
+    <input id="userInput" type="text" placeholder="Unesite pravno pitanje..." class="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none" />
+    <button id="sendBtn" class="ml-2 text-neutral-800 hover:text-black">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M2 21l21-9L2 3v7l15 2-15 2v7z" />
+      </svg>
+    </button>
+    <button id="resetBtn" class="ml-2 text-red-500 hover:text-red-700" title="Novi slučaj">🗑</button>
+  </div>
+</div>
+
+<script>
+const toggleBtn = document.getElementById("toggleChat");
+const chatWidget = document.getElementById("chatWidget");
+const messages = document.getElementById("messages");
+const input = document.getElementById("userInput");
+const sendBtn = document.getElementById("sendBtn");
+const resetBtn = document.getElementById("resetBtn");
+const typing = document.getElementById("typing");
+
+toggleBtn.onclick = () => {
+  chatWidget.classList.toggle("hidden");
+};
+
+function addMessage(text, cls) {
+  const div = document.createElement("div");
+  div.className = "p-2 rounded-lg " + (cls === "user" ? "bg-neutral-100 text-right" : "bg-gray-100");
+  div.innerHTML = text;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+async function sendMessage() {
+  const text = input.value.trim();
+  if (!text) return;
+  addMessage("<b>Vi:</b> " + text, "user");
+  input.value = "";
+  typing.classList.remove("hidden");
+
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: text })
+  });
+
+  const data = await res.json();
+  typing.classList.add("hidden");
+  showTypingEffect("Asistent: " + data.reply, "bot");
+}
+
+function showTypingEffect(fullText, cls) {
+  let i = 0;
+  const div = document.createElement("div");
+  div.className = "p-2 rounded-lg bg-gray-100 chat-font italic";
+  messages.appendChild(div);
+  const interval = setInterval(() => {
+    div.textContent = fullText.slice(0, i++);
+    messages.scrollTop = messages.scrollHeight;
+    if (i > fullText.length) clearInterval(interval);
+  }, 12);
+}
+
+sendBtn.onclick = sendMessage;
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") sendMessage();
+});
+resetBtn.onclick = () => {
+  messages.innerHTML = "";
+};
+</script>
 </body>
 </html>
