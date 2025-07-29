@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VS Legal Asistent</title>
+  <link rel="stylesheet" href="/styles/styles.css" />
+</head>
+<body>
+  <div id="chat-container">
+    <div id="messages"></div>
+    <div id="input-container">
+      <input type="text" id="user-input" placeholder="Unesite pravno pitanje..." />
+      <button id="send-button">Pošalji</button>
+    </div>
+  </div>
+
+  <script>
+    const input = document.getElementById('user-input');
+    const button = document.getElementById('send-button');
+    const messages = document.getElementById('messages');
+
+    async function sendMessage() {
+      const userMessage = input.value.trim();
+      if (!userMessage) return;
+      messages.innerHTML += `<div class="user-msg">${userMessage}</div>`;
+      input.value = "";
+
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMessage })
+      });
+
+      const data = await res.json();
+      messages.innerHTML += `<div class="bot-msg">${data.reply}</div>`;
+    }
+
+    button.onclick = sendMessage;
+    input.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
+</body>
+</html>
